@@ -35,6 +35,7 @@ msys)
 esac
 
 # Build tools
+echo "${ANDROID_NDK_HOME}"
 TOOLCHAIN_PREFIX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/${HOST_PLATFORM}"
 
 mkdir -p $SOURCES_DIR

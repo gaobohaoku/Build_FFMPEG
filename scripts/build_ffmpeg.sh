@@ -51,6 +51,17 @@ function downloadFfmpeg() {
   popd
 }
 
+function downloadMbedTLS() {
+  pushd $SOURCES_DIR
+  echo "Downloading mbedtls source code of version $MBEDTLS_VERSION..."
+  MBEDTLS_FILE=mbedtls-$MBEDTLS_VERSION.tar.gz
+  curl -L "https://github.com/Mbed-TLS/mbedtls/archive/refs/tags/v${MBEDTLS_VERSION}.tar.gz" -o $MBEDTLS_FILE
+  [ -e $MBEDTLS_FILE ] || { echo "$MBEDTLS_FILE does not exist. Exiting..."; exit 1; }
+  tar -zxf $MBEDTLS_FILE
+  rm $MBEDTLS_FILE
+  popd
+}
+
 function buildFfmpeg() {
   pushd $FFMPEG_DIR
   EXTRA_BUILD_CONFIGURATION_FLAGS=""
@@ -154,12 +165,42 @@ function buildFfmpeg() {
   popd
 }
 
+function buildMbedTLS() {
+    pushd $MBEDTLS_DIR
+
+    for ABI in $ANDROID_ABIS; do
+
+      CMAKE_BUILD_DIR=$MBEDTLS_DIR/mbedtls_build_${ABI}
+      rm -rf ${CMAKE_BUILD_DIR}
+      mkdir -p ${CMAKE_BUILD_DIR}
+      cd ${CMAKE_BUILD_DIR}
+
+      ${CMAKE_EXECUTABLE} .. \
+       -DANDROID_PLATFORM=${ANDROID_PLATFORM} \
+       -DANDROID_ABI=$ABI \
+       -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake \
+       -DCMAKE_INSTALL_PREFIX=$BUILD_DIR/external/$ABI \
+       -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,max-page-size=16384" \
+       -DENABLE_TESTING=0
+
+      make -j$JOBS
+      make install
+
+    done
+    popd
+}
+
 if [[ ! -d "$OUTPUT_DIR" && ! -d "$BUILD_DIR" ]]; then
+  # Download MbedTLS source code if it doesn't exist
+  if [[ ! -d "$MBEDTLS_DIR" ]]; then
+    downloadMbedTLS
+  fi
   # Download Ffmpeg source code if it doesn't exist
   if [[ ! -d "$FFMPEG_DIR" ]]; then
     downloadFfmpeg
   fi
 
   # Building library
+  buildMbedTLS
   buildFfmpeg
 fi

@@ -48,7 +48,17 @@ jobs:
         echo "NDK_PATH=$(pwd)/ndk/android-ndk-r25c" >> $GITHUB_ENV
 
     # =========================
-    # 4. Clone Media3
+    # 4. Install cmake
+    # =========================
+    - name: Download Cmake
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        wget -q https://dl.google.com/android/repository/cmake-3.31.6-linux.zip
+        unzip -q cmake-3.31.6-linux.zip -d cmake
+        echo "CMAKE_PATH=$(pwd)/cmake/cmake-3.31.6" >> $GITHUB_ENV
+
+    # =========================
+    # 5. Clone Media3
     # =========================
     - name: Clone Media3
       run: |
@@ -58,7 +68,7 @@ jobs:
         echo "MEDIA3_PATH=$(pwd)/libraries/decoder_ffmpeg/src/main" >> $GITHUB_ENV
 
     # =========================
-    # 5. Clone FFmpeg
+    # 6. Clone FFmpeg
     # =========================
     - name: Clone FFmpeg
       if: steps.cache.outputs.cache-hit != 'true'
@@ -69,11 +79,11 @@ jobs:
         echo "FFMPEG_PATH=$(pwd)" >> $GITHUB_ENV
 
     # =========================
-    # 6. Build FFmpeg (per ABI)
+    # 7. Build FFmpeg (per ABI)
     # =========================
     - name: Build FFmpeg
       run: |
-        bash scripts/build_ffmpeg.sh $NDK_PATH
+        bash scripts/build_ffmpeg.sh $NDK_PATH $CMAKE_PATH
 
     # =========================
     # 7. Upload artifacts

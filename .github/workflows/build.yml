@@ -1,0 +1,88 @@
+name: Media3 FFmpeg Production Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "codec profile (lite/full/tv)"
+        required: true
+        default: "full"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        abi: [arm64-v8a, armeabi-v7a, x86_64]
+
+    env:
+      PROFILE: ${{ github.event.inputs.profile }}
+
+    steps:
+    # =========================
+    # 1. Checkout
+    # =========================
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    # =========================
+    # 2. Cache NDK + FFmpeg
+    # =========================
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ndk
+          ffmpeg
+        key: ffmpeg-${{ matrix.abi }}-${{ hashFiles('config/**/*.sh', 'scripts/**/*.sh') }}
+
+    # =========================
+    # 3. Install NDK
+    # =========================
+    - name: Download Android NDK
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        wget -q https://dl.google.com/android/repository/android-ndk-r25c-linux.zip
+        unzip -q android-ndk-r25c-linux.zip -d ndk
+        echo "NDK_PATH=$(pwd)/ndk/android-ndk-r25c" >> $GITHUB_ENV
+
+    # =========================
+    # 4. Clone Media3
+    # =========================
+    - name: Clone Media3
+      run: |
+        git clone https://github.com/androidx/media.git
+        echo "MEDIA3_PATH=$(pwd)/media/libraries/decoder_ffmpeg/src/main" >> $GITHUB_ENV
+
+    # =========================
+    # 5. Clone FFmpeg
+    # =========================
+    - name: Clone FFmpeg
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        git clone https://git.ffmpeg.org/ffmpeg.git
+        cd ffmpeg
+        git checkout release/5.1
+        echo "FFMPEG_PATH=$(pwd)" >> $GITHUB_ENV
+
+    # =========================
+    # 6. Build FFmpeg (per ABI)
+    # =========================
+    - name: Build FFmpeg
+      run: |
+        bash scripts/build_ffmpeg.sh \
+          ${{ matrix.abi }} \
+          $PROFILE \
+          $NDK_PATH \
+          $FFMPEG_PATH \
+          $MEDIA3_PATH
+
+    # =========================
+    # 7. Upload artifacts
+    # =========================
+    - name: Upload FFmpeg libs
+      uses: actions/upload-artifact@v4
+      with:
+        name: ffmpeg-${{ matrix.abi }}-${{ env.PROFILE }}
+        path: out/${{ matrix.abi }}/

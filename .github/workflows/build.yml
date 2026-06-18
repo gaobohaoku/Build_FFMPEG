@@ -29,6 +29,7 @@ jobs:
     - name: Build FFmpeg
       run: |
         cd $FFMPEG_MODULE_PATH/jni
+        ln -s $FFMPEG_PATH ffmpeg
         export HOST_PLATFORM="linux-x86_64"
         export ANDROID_ABI=21
         export ENABLED_DECODERS=(aac ac3 mp3 flac h264 hevc)

@@ -53,6 +53,8 @@ jobs:
     - name: Clone Media3
       run: |
         git clone https://github.com/androidx/media.git
+        cd media
+        git checkout 1.6.1
         echo "MEDIA3_PATH=$(pwd)/media/libraries/decoder_ffmpeg/src/main" >> $GITHUB_ENV
 
     # =========================
@@ -81,8 +83,9 @@ jobs:
     # =========================
     # 7. Upload artifacts
     # =========================
-    - name: Upload FFmpeg libs
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ffmpeg-${{ matrix.abi }}-${{ env.PROFILE }}
-        path: out/${{ matrix.abi }}/
+        name: ffmpeg-so-files
+        # 把编译好的 decoder_ffmpeg 整个文件夹打包给你
+        path: media/libraries/decoder_ffmpeg/

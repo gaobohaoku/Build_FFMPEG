@@ -63,7 +63,7 @@ jobs:
     - name: Clone FFmpeg
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        git clone https://git.ffmpeg.org/ffmpeg.git
+        git clone git://source.ffmpeg.org/ffmpeg
         cd ffmpeg
         git checkout release/5.1
         echo "FFMPEG_PATH=$(pwd)" >> $GITHUB_ENV

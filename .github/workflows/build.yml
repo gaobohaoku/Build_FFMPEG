@@ -17,7 +17,7 @@ jobs:
         git clone https://github.com/androidx/media.git
         cd media
         git checkout 1.6.1
-        echo "FFMPEG_MODULE_PATH=$(pwd)/media/libraries/decoder_ffmpeg/src/main" >> $GITHUB_ENV
+        echo "FFMPEG_MODULE_PATH=$(pwd)/libraries/decoder_ffmpeg/src/main" >> $GITHUB_ENV
 
     - name: Clone FFmpeg
       run: |

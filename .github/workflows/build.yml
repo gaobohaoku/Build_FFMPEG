@@ -1,83 +1,47 @@
-name: Media3 FFmpeg Production Build
+name: Build FFmpeg for Media3
 
-on:
-  workflow_dispatch:
-    inputs:
-      profile:
-        description: "codec profile (lite/full/tv)"
-        required: true
-        default: "full"
+on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    env:
-      PROFILE: ${{ github.event.inputs.profile }}
-
     steps:
-    # =========================
-    # 1. Checkout
-    # =========================
-    - name: Checkout repo
-      uses: actions/checkout@v4
-
-    # =========================
-    # 3. Install NDK
-    # =========================
-    - name: Download Android NDK
-      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Download NDK
       run: |
-        wget -q https://dl.google.com/android/repository/android-ndk-r25c-linux.zip
-        unzip -q android-ndk-r25c-linux.zip -d ndk
-        echo "NDK_PATH=$(pwd)/ndk/android-ndk-r25c" >> $GITHUB_ENV
-        ls $(pwd)/ndk
+        wget https://dl.google.com/android/repository/android-ndk-r25c-linux.zip
+        unzip -q android-ndk-r25c-linux.zip
+        echo "NDK_PATH=$(pwd)/android-ndk-r25c" >> $GITHUB_ENV
 
-    # =========================
-    # 4. Install cmake
-    # =========================
-    - name: Download Cmake
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        wget -q https://dl.google.com/android/repository/cmake-3.31.6-linux.zip
-        unzip -q cmake-3.31.6-linux.zip -d cmake
-        echo "CMAKE_PATH=$(pwd)/cmake" >> $GITHUB_ENV
-        ls $(pwd)/cmake
-
-    # =========================
-    # 5. Clone Media3
-    # =========================
     - name: Clone Media3
       run: |
         git clone https://github.com/androidx/media.git
         cd media
         git checkout 1.6.1
-        echo "MEDIA3_PATH=$(pwd)/libraries/decoder_ffmpeg/src/main" >> $GITHUB_ENV
+        echo "FFMPEG_MODULE_PATH=$(pwd)/media/libraries/decoder_ffmpeg/src/main" >> $GITHUB_ENV
 
-    # =========================
-    # 6. Clone FFmpeg
-    # =========================
     - name: Clone FFmpeg
-      if: steps.cache.outputs.cache-hit != 'true'
       run: |
         git clone git://source.ffmpeg.org/ffmpeg
         cd ffmpeg
         git checkout release/6.0
         echo "FFMPEG_PATH=$(pwd)" >> $GITHUB_ENV
 
-    # =========================
-    # 7. Build FFmpeg (per ABI)
-    # =========================
+    - name: Enable Video Decoders (H.264/HEVC)
+      run: |
+        # 使用 sed 命令自动在脚本里加上开启 H264 的参数
+        sed -i 's/--disable-decoders \\/--disable-decoders \\\n    --enable-decoder=h264 \\\n    --enable-decoder=hevc \\/g' $FFMPEG_MODULE_PATH/jni/build_ffmpeg.sh
+        cat $FFMPEG_MODULE_PATH/jni/build_ffmpeg.sh | grep "enable-decoder=h264"
+
     - name: Build FFmpeg
       run: |
-        bash scripts/build_ffmpeg.sh $NDK_PATH $CMAKE_PATH
+        cd $FFMPEG_MODULE_PATH/jni
+        export HOST_PLATFORM="linux-x86_64"
+        ./build_ffmpeg.sh $FFMPEG_MODULE_PATH $NDK_PATH $HOST_PLATFORM $env.FFMPEG_PATH
 
-    # =========================
-    # 7. Upload artifacts
-    # =========================
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
         name: ffmpeg-so-files
         # 把编译好的 decoder_ffmpeg 整个文件夹打包给你
         path: media/libraries/decoder_ffmpeg/
+

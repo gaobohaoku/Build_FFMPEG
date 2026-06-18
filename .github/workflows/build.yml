@@ -55,7 +55,7 @@ jobs:
         git clone https://github.com/androidx/media.git
         cd media
         git checkout 1.6.1
-        echo "MEDIA3_PATH=$(pwd)/media/libraries/decoder_ffmpeg/src/main" >> $GITHUB_ENV
+        echo "MEDIA3_PATH=$(pwd)/libraries/decoder_ffmpeg/src/main" >> $GITHUB_ENV
 
     # =========================
     # 5. Clone FFmpeg
@@ -73,8 +73,7 @@ jobs:
     # =========================
     - name: Build FFmpeg
       run: |
-        bash scripts/build_ffmpeg.sh \
-          $NDK_PATH
+        bash scripts/build_ffmpeg.sh $NDK_PATH
 
     # =========================
     # 7. Upload artifacts

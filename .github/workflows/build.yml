@@ -56,6 +56,7 @@ jobs:
         wget -q https://dl.google.com/android/repository/cmake-3.31.6-linux.zip
         unzip -q cmake-3.31.6-linux.zip -d cmake
         echo "CMAKE_PATH=$(pwd)/cmake/cmake-3.31.6" >> $GITHUB_ENV
+        ls $(pwd)/cmake
 
     # =========================
     # 5. Clone Media3

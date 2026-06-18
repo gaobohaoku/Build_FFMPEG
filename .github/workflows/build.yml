@@ -65,7 +65,7 @@ jobs:
       run: |
         git clone git://source.ffmpeg.org/ffmpeg
         cd ffmpeg
-        git checkout release/5.1
+        git checkout release/6.0
         echo "FFMPEG_PATH=$(pwd)" >> $GITHUB_ENV
 
     # =========================
@@ -74,11 +74,7 @@ jobs:
     - name: Build FFmpeg
       run: |
         bash scripts/build_ffmpeg.sh \
-          ${{ matrix.abi }} \
-          $PROFILE \
-          $NDK_PATH \
-          $FFMPEG_PATH \
-          $MEDIA3_PATH
+          $NDK_PATH
 
     # =========================
     # 7. Upload artifacts

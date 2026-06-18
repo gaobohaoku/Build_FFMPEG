@@ -36,7 +36,9 @@ jobs:
       run: |
         cd $FFMPEG_MODULE_PATH/jni
         export HOST_PLATFORM="linux-x86_64"
-        ./build_ffmpeg.sh $FFMPEG_MODULE_PATH $NDK_PATH $HOST_PLATFORM $env.FFMPEG_PATH
+        export ANDROID_ABI=21
+        export ENABLED_DECODERS=(aac ac3 mp3 flac h264 hevc)
+        ./build_ffmpeg.sh $FFMPEG_MODULE_PATH $NDK_PATH $HOST_PLATFORM ${ANDROID_ABI} ${ENABLED_DECODERS[@]}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4

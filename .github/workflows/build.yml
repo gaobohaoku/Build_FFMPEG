@@ -12,10 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        abi: [arm64-v8a, armeabi-v7a, x86_64]
-
     env:
       PROFILE: ${{ github.event.inputs.profile }}
 
@@ -25,17 +21,6 @@ jobs:
     # =========================
     - name: Checkout repo
       uses: actions/checkout@v4
-
-    # =========================
-    # 2. Cache NDK + FFmpeg
-    # =========================
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      with:
-        path: |
-          ndk
-          ffmpeg
-        key: ffmpeg-${{ matrix.abi }}-${{ hashFiles('config/**/*.sh', 'scripts/**/*.sh') }}
 
     # =========================
     # 3. Install NDK

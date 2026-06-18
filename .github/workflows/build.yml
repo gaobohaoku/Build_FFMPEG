@@ -26,12 +26,6 @@ jobs:
         git checkout release/6.0
         echo "FFMPEG_PATH=$(pwd)" >> $GITHUB_ENV
 
-    - name: Enable Video Decoders (H.264/HEVC)
-      run: |
-        # 使用 sed 命令自动在脚本里加上开启 H264 的参数
-        sed -i 's/--disable-decoders \\/--disable-decoders \\\n    --enable-decoder=h264 \\\n    --enable-decoder=hevc \\/g' $FFMPEG_MODULE_PATH/jni/build_ffmpeg.sh
-        cat $FFMPEG_MODULE_PATH/jni/build_ffmpeg.sh | grep "enable-decoder=h264"
-
     - name: Build FFmpeg
       run: |
         cd $FFMPEG_MODULE_PATH/jni
